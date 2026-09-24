@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free Image Compressor</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f5f7fb;
+  color: #222;
+}
+
+.container {
+  max-width: 650px;
+  margin: 50px auto;
+  padding: 20px;
+}
+
+.card {
+  background: white;
+  padding: 30px;
+  border-radius: 18px;
+  box-shadow: 0 5px 25px rgba(0,0,0,0.08);
+  text-align: center;
+}
+
+h1 {
+  margin-bottom: 10px;
+}
+
+p {
+  color: #666;
+}
+
+input[type="file"] {
+  width: 100%;
+  padding: 15px;
+  margin: 20px 0;
+  border: 2px dashed #aaa;
+  border-radius: 10px;
+}
+
+input[type="range"] {
+  width: 100%;
+}
+
+button {
+  border: none;
+  padding: 14px 25px;
+  margin-top: 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+#compressBtn {
+  background: #111;
+  color: white;
+}
+
+#downloadBtn {
+  background: #16803c;
+  color: white;
+  display: none;
+}
+
+#result {
+  margin-top: 20px;
+  font-weight: bold;
+}
+
+img {
+  max-width: 100%;
+  margin-top: 20px;
+  border-radius: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <div class="card">
+
+    <h1>Free Image Compressor</h1>
+
+    <p>Compress JPG, PNG and WebP images easily.</p>
+
+    <input type="file" id="imageInput" accept="image/*">
+
+    <label>
+      Compression Quality:
+      <span id="qualityValue">70%</span>
+    </label>
+
+    <input type="range" id="quality" min="10" max="100" value="70">
+
+    <br>
+
+    <button id="compressBtn">Compress Image</button>
+
+    <div id="result"></div>
+
+    <img id="preview" style="display:none;">
+
+    <br>
+
+    <a id="downloadLink" download="compressed-image.jpg">
+      <button id="downloadBtn">Download Image</button>
+    </a>
+
+  </div>
+</div>
+
+<script>
+
+const imageInput = document.getElementById("imageInput");
+const quality = document.getElementById("quality");
+const qualityValue = document.getElementById("qualityValue");
+const compressBtn = document.getElementById("compressBtn");
+const result = document.getElementById("result");
+const preview = document.getElementById("preview");
+const downloadBtn = document.getElementById("downloadBtn");
+const downloadLink = document.getElementById("downloadLink");
+
+quality.addEventListener("input", () => {
+  qualityValue.textContent = quality.value + "%";
+});
+
+compressBtn.addEventListener("click", () => {
+
+  const file = imageInput.files[0];
+
+  if (!file) {
+    result.textContent = "Please select an image first.";
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = function(event) {
+
+    const img = new Image();
+
+    img.onload = function() {
+
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      let width = img.width;
+      let height = img.height;
+
+      const maxSize = 2000;
+
+      if (width > maxSize || height > maxSize) {
+
+        if (width > height) {
+          height = height * maxSize / width;
+          width = maxSize;
+        } else {
+          width = width * maxSize / height;
+          height = maxSize;
+        }
+
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+
+      ctx.drawImage(img, 0, 0, width, height);
+
+      const compressed = canvas.toDataURL(
+        "image/jpeg",
+        quality.value / 100
+      );
+
+      preview.src = compressed;
+      preview.style.display = "block";
+
+      downloadLink.href = compressed;
+      downloadBtn.style.display = "inline-block";
+
+      const originalKB = Math.round(file.size / 1024);
+      const compressedKB = Math.round(
+        (compressed.length * 0.75) / 1024
+      );
+
+      result.innerHTML =
+        "Original: " + originalKB + " KB<br>" +
+        "Compressed: approximately " + compressedKB + " KB";
+
+    };
+
+    img.src = event.target.result;
+  };
+
+  reader.readAsDataURL(file);
+
+});
+
+</script>
+
+</body>
+<html>
